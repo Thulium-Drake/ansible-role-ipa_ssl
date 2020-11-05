@@ -22,4 +22,5 @@ ipa_ssl_certificates: []
 #  - { domain: 'site2.example.com', altname: 'DNS:service.example.com' }
 
 # List of useraccounts that should be added to the ssl-cert group
+# The users mentioned in this list will not be automatically created
 ipa_ssl_useraccounts: []

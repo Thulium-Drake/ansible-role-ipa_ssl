@@ -4,14 +4,24 @@
     name: 'ssl-cert'
     state: 'present'
 
-- name: 'Ensure ssl-cert group members'
-  user:
-    name: "{{ user }}"
-    groups: 'ssl-cert'
-  loop: "{{ ipa_ssl_useraccounts }}"
-  loop_control:
-    loop_var: 'user'
-  ignore_errors: true # in case the user does not (yet) exist
+- block:
+  - name: 'Get local users'
+    getent:
+      database: 'passwd'
+
+  - name: 'Set list with local users'
+    set_fact:
+      ipa_ssl_local_user_list: "{{ getent_passwd.keys() | list }}"
+
+  - name: 'Ensure ssl-cert group members'
+    user:
+      name: "{{ user }}"
+      groups: 'ssl-cert'
+      append: true
+    when: user in ipa_ssl_local_user_list
+    loop: "{{ ipa_ssl_useraccounts }}"
+    loop_control:
+      loop_var: 'user'
 
 - name: 'Process request'
   include_tasks:
