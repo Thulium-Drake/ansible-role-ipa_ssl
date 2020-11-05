@@ -1,0 +1,25 @@
+---
+ipa_ssl_basedir: '/etc/ssl/ipa'        # Directory to save certificates on IPA client host
+
+# IPA OCSP certificate URL
+ipa_ssl_ocsp_url: 'http://ipa-ca.example.com/ca/ocsp'
+
+ipa_ssl_rsa_bits: 4096                 # How long to make RSA keys
+ipa_ssl_ecparam_curve: 'secp384r1'     # Which elliptic curve to use for the private key
+
+ipa_ssl_validity_min: 30               # How many days a cert can have left before it's renewed
+ipa_ssl_default_type: 'RSA'            # Default certificate type, IPA 4.6.6 only supports RSA
+
+# The certficates that are requested
+# domain: name of the certificate
+# type: ECC or RSA
+# altname: SAN names for this certificate, this requires a IPA host with
+#          Principal Aliasses for all these names. This role will attempt
+#          to configure it, but can fail if the DNS component is not installed
+#          on the IPA server.
+ipa_ssl_certificates: []
+#  - { domain: 'site.example.com' , type: 'ECC' }
+#  - { domain: 'site2.example.com', altname: 'DNS:service.example.com' }
+
+# List of useraccounts that should be added to the ssl-cert group
+ipa_ssl_useraccounts: []

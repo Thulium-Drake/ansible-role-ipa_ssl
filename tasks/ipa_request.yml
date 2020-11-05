@@ -1,0 +1,137 @@
+---
+# What: Generate and request certificates via IPA
+#
+- name: 'Check certificate directory'
+  file:
+    path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}"
+    state: 'directory'
+    mode: 0770
+    owner: 'root'
+    group: 'ssl-cert'
+
+- block:
+    - name: "Check certificate validity - {{ certificate.domain }}"
+      community.crypto.x509_certificate_info:
+        path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.crt"
+        valid_at:
+          min_validity: "+{{ ipa_ssl_validity_min }}d"
+      register: 'ssl_cert_info'
+    - name: "Check certificate validity - {{ certificate.domain }}"
+      set_fact:
+        ipa_cert_valid: "{{ ssl_cert_info.valid_at.min_validity }}"
+  rescue:
+    - name: "Check certificate validity - {{ certificate.domain }}"
+      set_fact:
+        ipa_cert_valid: false
+
+- block:
+  - name: "Clear old files - {{ certificate.domain }}"
+    file:
+      state: 'absent'
+      path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
+    loop:
+      - "{{ certificate.domain }}.key"
+      - "{{ certificate.domain }}.csr"
+      - "{{ certificate.domain }}.crt"
+      - 'ca.cer'
+
+  - name: "Generating new EC SSL key - {{ certificate.domain }}"
+    community.crypto.openssl_privatekey:
+      path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
+      curve: "{{ ipa_ssl_ecparam_curve }}"
+      type: "{{ ipa_ssl_type }}"
+      mode: 0440
+      owner: 'root'
+      group: 'ssl-cert'
+    when: ipa_ssl_type == 'ECC'
+
+  - name: "Generating new SSL key - {{ certificate.domain }}"
+    community.crypto.openssl_privatekey:
+      path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
+      size: "{{ ipa_ssl_rsa_bits }}"
+      type: "{{ ipa_ssl_type }}"
+      mode: 0440
+      owner: 'root'
+      group: 'ssl-cert'
+    when: ipa_ssl_type == 'RSA'
+
+  - block:
+    - name: "Generating SAN list - {{ certificate.domain }}"
+      set_fact:
+        san_list: "[ '{{ certificate.domain }}' ] + {{ certificate.altname }}"
+
+    - name: "Adding SAN Kerberos prefixes - {{ certificate.domain }}"
+      set_fact:
+        san_list_krb: "{{ san_list | map('regex_replace', '^', 'host/') | list }}"
+
+    - block:
+      - name: 'Ensure Host Kerberos principal aliases for SAN list'
+        freeipa.ansible_freeipa.ipahost:
+          name: "{{ ansible_facts['fqdn'] }}"
+          principal: "{{ san_list_krb }}"
+          state: 'present'
+          ipaadmin_principal: "{{ ipaadmin_principal }}"
+          ipaadmin_password: "{{ ipaadmin_password }}"
+        delegate_to: "{{ ipa_ssl_adminserver }}"
+      rescue:
+        - name: 'Error updating host'
+          debug:
+            msg: |
+              Please login to the IPA admin console and add the following aliasses
+              manually:
+                {{ san_list_krb }}
+
+              If you already did so, you can ignore this message
+      when: certificate.altname is defined
+
+    - name: "Adding SAN prefixes - {{ certificate.domain }}"
+      set_fact:
+        san_list: "{{ san_list | map('regex_replace', '^', 'DNS:') | list }}"
+
+    - name: "Generating new CSR file with SAN - {{ certificate.domain }}"
+      community.crypto.openssl_csr:
+        path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
+        privatekey_path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
+        common_name: "{{ certificate.domain }}"
+        subject_alt_name: "{{ san_list }}"
+        mode: 0440
+        owner: 'root'
+        group: 'ssl-cert'
+    when: certificate.altname is defined
+
+  - name: "Generating new CSR file - {{ certificate.domain }}"
+    community.crypto.openssl_csr:
+      path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
+      privatekey_path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
+      common_name: "{{ certificate.domain }}"
+      subject_alt_name: "DNS:{{ certificate.domain }}"
+      mode: 0440
+      owner: 'root'
+      group: 'ssl-cert'
+    when: certificate.altname is not defined
+
+  - name: 'Process request with IPA server'
+    shell: |
+      kinit -k
+      ipa cert-request {{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr \
+      --certificate-out={{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.crt \
+      --principal host/{{ ansible_facts['fqdn'] }}@{{ ipaclient_domain | upper }}
+
+  - name: "Downloading Issuing CA OCSP certificate - {{ certificate.domain }}"
+    uri:
+      url: "{{ ipa_ssl_ocsp_url }}"
+      force: true
+      status_code:
+        - 200
+        - 304
+      dest: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/ocsp.cer"
+      mode: 0440
+      owner: 'root'
+      group: 'ssl-cert'
+
+  - name: 'Ensure certificate file permissions'
+    file:
+      path: "{{ ipa_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.crt"
+      mode: 0440
+      owner: 'root'
+      group: 'ssl-cert'

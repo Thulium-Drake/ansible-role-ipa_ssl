@@ -1,0 +1,21 @@
+---
+- name: 'Ensure ssl-cert group'
+  group:
+    name: 'ssl-cert'
+    state: 'present'
+
+- name: 'Ensure ssl-cert group members'
+  user:
+    name: "{{ user }}"
+    groups: 'ssl-cert'
+  loop: "{{ ipa_ssl_useraccounts }}"
+  loop_control:
+    loop_var: 'user'
+  ignore_errors: true # in case the user does not (yet) exist
+
+- name: 'Process request'
+  include_tasks:
+    file: 'ipa_request.yml'
+  loop: "{{ ipa_ssl_certificates | default([]) }}"
+  loop_control:
+    loop_var: 'certificate'
