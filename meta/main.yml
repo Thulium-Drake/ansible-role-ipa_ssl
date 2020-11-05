@@ -1,29 +1,23 @@
 ---
 galaxy_info:
   author: Jeffrey van Pelt
-  description: Some role
+  description: SSL certificates from IPA powered by Ansible
   company:
-  role_name: empty
+  role_name: ipa_ssl
 
   license: GPLv3
 
   min_ansible_version: 2.9
 
   platforms:
-    - name: Debian
-      versions:
-        - stretch
-        - buster
-    - name: Ubuntu
-      versions:
-        - bionic
-        - focal
     - name: EL
       versions:
         - 7
 
   galaxy_tags:
-    - some
-    - tags
+    - ipa
+    - freeipa
+    - ssl
+    - certificates
 
 dependencies: []
