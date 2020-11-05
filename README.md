@@ -1,3 +1,5 @@
+[![Build Status](https://drone.element-networks.nl/api/badges/Ansible/role-ipa_ssl/status.svg)](https://drone.element-networks.nl/Ansible/role-ipa_ssl)
+
 ## SSL certificates powered by IPA
 This role will provide SSL certificates for hosts that are enrolled in a IPA domain
 
