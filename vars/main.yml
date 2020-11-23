@@ -1,3 +1,3 @@
 ---
 # Map optional non-set defaults to variables used in tasks
-ipa_ssl_type: "{{ certificate.type | default(ipa_ssl_default_type) }}"
+ipa_ssl_type: "{{ certificate['type'] | default(ipa_ssl_default_type) }}"
