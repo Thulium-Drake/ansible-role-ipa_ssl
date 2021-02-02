@@ -19,7 +19,7 @@ ipa_ssl_default_type: 'RSA'            # Default certificate type, IPA 4.6.6 onl
 #          on the IPA server.
 ipa_ssl_certificates: []
 #  - { domain: 'site.example.com' , type: 'ECC' }
-#  - { domain: 'site2.example.com', altname: 'DNS:service.example.com' }
+#  - { domain: 'site2.example.com', altname: 'service.example.com' }
 
 # List of useraccounts that should be added to the ssl-cert group
 # The users mentioned in this list will not be automatically created
