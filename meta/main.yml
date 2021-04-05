@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Jeffrey van Pelt
+  author: thulium_drake
   description: SSL certificates from IPA powered by Ansible
   company:
   role_name: ipa_ssl
