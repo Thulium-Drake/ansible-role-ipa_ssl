@@ -131,12 +131,21 @@
       group: 'ssl-cert'
     when: certificate['altname'] is not defined
 
-  - name: 'Process request with IPA server'
+  - name: 'Process request with IPA server - Download certificate only'
     shell: |
       kinit -k
       ipa cert-request {{ ipa_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.csr \
       --certificate-out={{ ipa_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.crt \
       --principal host/{{ ansible_facts['fqdn'] }}@{{ ipaclient_domain | upper }}
+    when: not ipa_ssl_fullchain
+
+  - name: 'Process request with IPA server - Download full chain (including anchor)'
+    shell: |
+      kinit -k
+      ipa cert-request {{ ipa_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.csr \
+      --certificate-out={{ ipa_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.crt \
+      --principal host/{{ ansible_facts['fqdn'] }}@{{ ipaclient_domain | upper }} --chain
+    when: ipa_ssl_fullchain
 
   - name: "Downloading Issuing CA OCSP certificate - {{ certificate['domain'] }}"
     uri:

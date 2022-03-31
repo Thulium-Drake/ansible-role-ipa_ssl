@@ -1,14 +1,18 @@
 ---
-ipa_ssl_basedir: '/etc/ssl/ipa'        # Directory to save certificates on IPA client host
+ipa_ssl_basedir: '/etc/ssl/ipa'         # Directory to save certificates on IPA client host
 
 # IPA OCSP certificate URL
 ipa_ssl_ocsp_url: 'http://ipa-ca.example.com/ca/ocsp'
 
-ipa_ssl_rsa_bits: 4096                 # How long to make RSA keys
-ipa_ssl_ecparam_curve: 'secp384r1'     # Which elliptic curve to use for the private key
+ipa_ssl_rsa_bits: 4096                  # How long to make RSA keys
+ipa_ssl_ecparam_curve: 'secp384r1'      # Which elliptic curve to use for the private key
 
-ipa_ssl_validity_min: 30               # How many days a cert can have left before it's renewed
-ipa_ssl_default_type: 'RSA'            # Default certificate type, IPA 4.6.6 only supports RSA
+ipa_ssl_validity_min: 30                # How many days a cert can have left before it's renewed
+ipa_ssl_default_type: 'RSA'             # Default certificate type, IPA 4.6.6 only supports RSA
+
+ipa_ssl_adminserver: 'ipa.example.com'  # IPA server that will process the request
+
+ipa_ssl_fullchain: false                # Download the full chain (or just the certificate)
 
 # The certficates that are requested
 # domain: name of the certificate
