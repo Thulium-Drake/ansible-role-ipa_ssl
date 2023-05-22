@@ -1,30 +1,31 @@
 ---
 - name: 'Ensure ssl-cert group'
-  group:
+  ansible.builtin.group:
     name: 'ssl-cert'
     state: 'present'
 
-- block:
-  - name: 'Get local users'
-    getent:
-      database: 'passwd'
+- name: 'Ensure local user group membership'
+  block:
+    - name: 'Get local users'
+      ansible.builtin.getent:
+        database: 'passwd'
 
-  - name: 'Set list with local users'
-    set_fact:
-      ipa_ssl_local_user_list: "{{ getent_passwd.keys() | list }}"
+    - name: 'Set list with local users'
+      ansible.builtin.set_fact:
+        ipa_ssl_local_user_list: "{{ getent_passwd.keys() | list }}"
 
-  - name: 'Ensure ssl-cert group members'
-    user:
-      name: "{{ user }}"
-      groups: 'ssl-cert'
-      append: true
-    when: user in ipa_ssl_local_user_list
-    loop: "{{ ipa_ssl_useraccounts }}"
-    loop_control:
-      loop_var: 'user'
+    - name: 'Ensure ssl-cert group members'
+      ansible.builtin.user:
+        name: "{{ user }}"
+        groups: 'ssl-cert'
+        append: true
+      when: user in ipa_ssl_local_user_list
+      loop: "{{ ipa_ssl_useraccounts }}"
+      loop_control:
+        loop_var: 'user'
 
 - name: 'Process request'
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: 'ipa_request.yml'
   loop: "{{ ipa_ssl_certificates | default([]) }}"
   loop_control:
