@@ -82,7 +82,7 @@
       block:
         - name: "Generating SAN list - {{ certificate['domain'] }}"
           ansible.builtin.set_fact:
-            san_list: "'{{ [certificate['domain']] + certificate['altname'] }}"
+            san_list: "{{ [certificate['domain']] + certificate['altname'] }}"
 
         - name: "Adding SAN Kerberos prefixes - {{ certificate['domain'] }}"
           ansible.builtin.set_fact:
