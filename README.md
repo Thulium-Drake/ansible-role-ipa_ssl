@@ -28,3 +28,6 @@ After fulfilling the requirements above this role can be used as follows:
 * Profit!
 
 Keep in mind: This role does *NOT* reconfigure software to actually use those certs! It will create a group on your system 'ssl-cert' with access permissions to the certificate files.
+
+# Limitations
+This role will attempt to create Kerberos principals to allow for the certificates to be generated on the host. However, should that action fail (mostly because one or more of the principal aliases already exists) you need to address that manually for now.

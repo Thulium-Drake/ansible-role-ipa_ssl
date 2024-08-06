@@ -26,6 +26,7 @@
         ipa_cert_valid: false
 
 - name: 'Clear old files'
+  when: not ipa_cert_valid
   block:
     - name: "Clear old files - {{ certificate['domain'] }}"
       ansible.builtin.file:
@@ -78,7 +79,8 @@
         group: 'ssl-cert'
       when: ipa_ssl_type == 'RSA'
 
-    - name: 'Generate SAN list'  # noqa key-order[task]
+    - name: 'Generate SAN list'
+      when: certificate['altname'] is defined
       block:
         - name: "Generating SAN list - {{ certificate['domain'] }}"
           ansible.builtin.set_fact:
@@ -86,7 +88,7 @@
 
         - name: "Adding SAN Kerberos prefixes - {{ certificate['domain'] }}"
           ansible.builtin.set_fact:
-            san_list_krb: "{{ san_list | map('regex_replace', '^', 'host/') | list }}"
+            san_list_krb: "{{ certificate['altname'] | map('regex_replace', '^', 'host/') | list }}"
 
         - name: 'Ensure host Kerberos principals'
           when: certificate['altname'] is defined
@@ -122,7 +124,6 @@
             mode: '0440'
             owner: 'root'
             group: 'ssl-cert'
-      when: certificate['altname'] is defined
 
     - name: "Generating new CSR file - {{ certificate['domain'] }}"
       community.crypto.openssl_csr:
@@ -171,4 +172,3 @@
         mode: '0440'
         owner: 'root'
         group: 'ssl-cert'
-  when: not ipa_cert_valid
