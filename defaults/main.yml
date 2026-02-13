@@ -28,3 +28,6 @@ ipa_ssl_certificates: []
 # List of useraccounts that should be added to the ssl-cert group
 # The users mentioned in this list will not be automatically created
 ipa_ssl_useraccounts: []
+
+# When set to true, will force a renewal of all defined certs
+ipa_ssl_force_renew: false
