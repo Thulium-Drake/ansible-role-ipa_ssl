@@ -147,6 +147,7 @@
         --certificate-out={{ ipa_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.crt \
         --principal host/{{ ansible_facts['fqdn'] }}@{{ ipaclient_domain | upper }}
       changed_when: true
+      throttle: 1  # Prevent IPA server corruption when running multiple at the same time
       when: not ipa_ssl_fullchain
 
     - name: 'Process request with IPA server - Download full chain (including anchor)'
@@ -156,6 +157,7 @@
         --certificate-out={{ ipa_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.crt \
         --principal host/{{ ansible_facts['fqdn'] }}@{{ ipaclient_domain | upper }} --chain
       changed_when: true
+      throttle: 1  # Prevent IPA server corruption when running multiple at the same time
       when: ipa_ssl_fullchain
 
     - name: "Downloading Issuing CA OCSP certificate - {{ certificate['domain'] }}"
