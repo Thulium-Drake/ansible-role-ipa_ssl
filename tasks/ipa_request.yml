@@ -14,7 +14,7 @@
     - name: 'Force certificate renewal'
       ansible.builtin.fail:
         msg: 'Forced certificate renewal requested, failing validity check'
-      when: not ipa_ssl_force_renew | bool
+      when: ipa_ssl_force_renew | bool
     - name: "Check certificate validity - {{ certificate['domain'] }}"
       community.crypto.x509_certificate_info:
         path: "{{ ipa_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.crt"
